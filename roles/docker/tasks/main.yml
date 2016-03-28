@@ -1,0 +1,118 @@
+---
+- name: Update apt
+  apt: 
+    update_cache: yes
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: Install requirements
+  apt: 
+    name: "{{item}}"
+  with_items:
+    - apt-transport-https 
+    - ca-certificates
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: Add docker repo key
+  apt_key: 
+    keyserver: "hkp://p80.pool.sks-keyservers.net:80" 
+    id: "58118E89F3A912897C070ADBF76221572C52609D"
+    state: present
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: Add docker repo
+  apt_repository:
+    repo: 'deb https://apt.dockerproject.org/repo ubuntu-trusty main'
+    state: present
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: Update apt again
+  apt: 
+    update_cache: yes
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: Get the uname
+  command: "uname -r"
+  register: uname
+
+- debug: var=uname
+
+- name: install linux image extra
+  apt: 
+    name: "linux-image-extra-{{uname.stdout}}"
+    state: present
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: Install apparmor
+  apt: 
+    name: apparmor
+    state: present
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: "Install docker engine!"
+  apt: 
+    name: docker-engine
+    state: present
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: Add docker group
+  group: 
+    name: docker 
+    state: present
+
+- name: Add devops to docker group
+  user: 
+    name: devops
+    group: docker
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+- name: Get uname -s
+  command: "uname -s"
+  register: unames
+  tags: 
+    - with_compose
+
+- name: Get uname -m
+  command: "uname -m"
+  register: unamem
+  tags: 
+    - with_compose
+
+- name: install compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/1.6.0/docker-compose-{{unames.stdout}}-{{unamem.stdout}}"
+    dest: "/usr/local/bin/docker-compose"
+  become: yes
+  become_user: root 
+  become_method: sudo
+  tags: 
+    - with_compose
+
+- name: Add execution rights to file
+  file: 
+    path: /usr/local/bin/docker-compose
+    state: file 
+    mode: a+x
+    group: docker
+  become: yes
+  become_user: root 
+  become_method: sudo
+  tags: 
+    - with_compose

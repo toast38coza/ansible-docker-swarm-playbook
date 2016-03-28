@@ -1,0 +1,28 @@
+---
+# tasks file for ubuntubase
+
+- name: update apt cache 
+  apt: update_cache=yes cache_valid_time=3600    
+  become: yes
+  become_method: sudo
+  become_user: root
+
+#- name: "Add key"
+#  template: src='id_rsa' dest='~/.ssh/id_rsa' mode=400
+#  tags:
+#    - base
+#    - debug    
+
+- name: Install the basics
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - 'fail2ban'
+    - 'unattended-upgrades'
+    - 'git'
+    - 'libpq-dev'
+    - 'python-dev'
+    - 'python-setuptools'
+    - 'python-virtualenv'
+  become: yes
+  become_method: sudo
+  become_user: root

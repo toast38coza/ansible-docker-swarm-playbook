@@ -1,0 +1,8 @@
+[node]
+45.55.144.228  private_ip=10.132.48.106 ansible_ssh_user=root
+
+[manager]
+104.236.61.150  private_ip=10.132.44.190 ansible_ssh_user=root
+
+[replica]
+159.203.91.233 private_ip=10.132.48.105 ansible_ssh_user=root

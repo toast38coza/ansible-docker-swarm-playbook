@@ -1,0 +1,62 @@
+---
+- name: Install requirements 
+  apt: 
+    name: "{{item}}"
+  with_items:
+    - dnsmasq
+    - unzip
+    - nginx
+    - nagios-plugins
+  become: yes 
+  become_user: root
+  become_method: sudo 
+
+- name: install pip requirements
+  pip:
+    name: python-consul
+  become: yes 
+  become_user: root
+  become_method: sudo 
+
+- name: Get consul
+  get_url: 
+    url: "https://releases.hashicorp.com/consul/{{consul_version}}/consul_{{consul_version}}_linux_amd64.zip"
+    dest: "/usr/local/bin/consul_{{consul_version}}_linux_amd64.zip"
+  become: yes 
+  become_user: root
+  become_method: sudo 
+
+- name: Unzip consul
+  command: "unzip /usr/local/bin/consul_{{consul_version}}_linux_amd64.zip"
+  args:
+    creates: "/usr/local/bin/consul"
+    chdir: /usr/local/bin/
+  become: yes
+  become_user: root
+  become_method: sudo
+
+- name: upload upstart script
+  template: 
+    src: upstart.conf
+    dest: /etc/init/consul.conf
+  become: yes 
+  become_user: root
+  become_method: sudo 
+  notify: restart consul  
+
+- name: Make sure consul is started
+  service: 
+    name: consul
+    state: started
+  become: yes 
+  become_user: root
+  become_method: sudo 
+
+- name: Configure Dnsmasq
+  copy: content='server=/consul/127.0.0.1#8600' dest=/etc/dnsmasq.d/10-consul
+  notify:
+    - restart dnsmasq
+  become: yes 
+  become_user: root
+  become_method: sudo 
+
